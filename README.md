@@ -13,6 +13,7 @@ To run this app you need to have below dependencies:
 ##### Make Sure You Have:
 
 - [goorm](https://github.com/jinzhu/gorm)
+- [gorilla mux routing package](https://github.com/gorilla/mux)
 - [go mysql driver package](https://github.com/go-sql-driver/mysql)
 
 ### Configuring DB
