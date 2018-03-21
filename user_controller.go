@@ -20,7 +20,7 @@ func (a *app) getUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	respondWithJSON(w, http.StatusOK, u)
+	respondWithJSON(w, http.StatusOK, u.embedUserItem(a))
 }
 
 func (a *app) createUser(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +39,11 @@ func (a *app) createUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	if stringIsEmpty(u.Password) {
+		respondWithError(w, http.StatusBadRequest, "The password is required")
+		return
+	}
+
 	if intIsEmpty(u.RoleID) {
 		respondWithError(w, http.StatusBadRequest, "Role id is required")
 		return
@@ -48,6 +53,9 @@ func (a *app) createUser(w http.ResponseWriter, r *http.Request) {
 		respondWithError(w, http.StatusBadRequest, "Invalid Email: "+u.Email)
 		return
 	}
+
+	// hashing password beforesave
+	u.hashUserPassword()
 
 	a.DB.NewRecord(u)
 
@@ -66,5 +74,44 @@ func (a *app) createUser(w http.ResponseWriter, r *http.Request) {
 func (a *app) getAllUsers(w http.ResponseWriter, r *http.Request) {
 	users := []User{}
 	a.DB.Find(&users)
-	respondWithJSON(w, http.StatusOK, users)
+	respondWithJSON(w, http.StatusOK, embedUserCollection(users, a))
+}
+
+func (a *app) updateUser(w http.ResponseWriter, r *http.Request) {
+	var newUser User
+	var oldUser User
+
+	decoder := json.NewDecoder(r.Body)
+	err := decoder.Decode(&newUser)
+	if err != nil {
+		respondWithError(w, http.StatusBadRequest, err.Error())
+		return
+	}
+	defer r.Body.Close()
+
+	// first check if the user exists
+	if err := a.DB.Where("id = ?", newUser.ID).First(&oldUser).Error; err != nil {
+		respondWithError(w, http.StatusNotFound, "We can't find the user you are trying to update!")
+		return
+	}
+
+	if !stringIsEmpty(newUser.Name) {
+		oldUser.Name = newUser.Name
+	}
+
+	if !stringIsEmpty(newUser.Email) {
+		oldUser.Email = newUser.Email
+	}
+
+	if !intIsEmpty(newUser.RoleID) {
+		oldUser.RoleID = newUser.RoleID
+	}
+
+	if err := a.DB.Save(&oldUser).Error; err != nil {
+		respondWithError(w, http.StatusInternalServerError, "We couldn't update your store")
+		return
+	}
+
+	respondWithJSON(w, http.StatusOK, oldUser)
+
 }

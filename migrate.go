@@ -20,4 +20,22 @@ func migrateSchema(a *app) {
 		a.DB.CreateTable(&u)
 	}
 
+	// products table
+	if !a.DB.HasTable("products") {
+		var p Product
+		a.DB.CreateTable(&p)
+	}
+
+	// stores table
+	if !a.DB.HasTable("stores") {
+		var s Store
+		a.DB.CreateTable(&s)
+	}
+
+	// currencies table
+	if !a.DB.HasTable("currencies") {
+		var c Currency
+		a.DB.CreateTable(&c)
+	}
+
 }
