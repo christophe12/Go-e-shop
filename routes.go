@@ -18,4 +18,10 @@ func (a *app) initialiazeRoutes() {
 
 	// products routes
 	a.Router.HandleFunc("/products/{id}", a.getProduct).Methods("GET")
+	a.Router.HandleFunc("/products", a.getAllProducts).Methods("GET")
+	a.Router.HandleFunc("/products/create", a.createProduct).Methods("POST")
+
+	// currencies routes
+	a.Router.HandleFunc("/currencies/{id}", a.getCurrency).Methods("GET")
+	a.Router.HandleFunc("/currencies/create", a.createCurrency).Methods("POST")
 }

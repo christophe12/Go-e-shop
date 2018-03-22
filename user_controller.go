@@ -16,7 +16,7 @@ func (a *app) getUser(w http.ResponseWriter, r *http.Request) {
 	a.DB.Where("id = ?", id).First(&u)
 
 	if u.ID == 0 {
-		respondWithError(w, http.StatusNotFound, "User not found")
+		respondWithError(w, http.StatusNotFound, []string{"User not found"})
 		return
 	}
 
@@ -28,29 +28,31 @@ func (a *app) createUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&u)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error())
+		respondWithError(w, http.StatusBadRequest, []string{err.Error()})
 		return
 	}
 	defer r.Body.Close()
 
 	// validations
+	var validationErrors []string
 	if stringIsEmpty(u.Name) || stringIsEmpty(u.Email) {
-		respondWithError(w, http.StatusBadRequest, "Name and Email are required")
-		return
+		validationErrors = append(validationErrors, "Name and Email are required")
 	}
 
 	if stringIsEmpty(u.Password) {
-		respondWithError(w, http.StatusBadRequest, "The password is required")
-		return
+		validationErrors = append(validationErrors, "The password is required")
 	}
 
 	if intIsEmpty(u.RoleID) {
-		respondWithError(w, http.StatusBadRequest, "Role id is required")
-		return
+		validationErrors = append(validationErrors, "Role id is required")
 	}
 
 	if !isValidEmail(u.Email) {
-		respondWithError(w, http.StatusBadRequest, "Invalid Email: "+u.Email)
+		validationErrors = append(validationErrors, "Invalid Email: "+u.Email)
+	}
+
+	if validationErrors != nil {
+		respondWithError(w, http.StatusBadRequest, validationErrors)
 		return
 	}
 
@@ -63,7 +65,7 @@ func (a *app) createUser(w http.ResponseWriter, r *http.Request) {
 
 	// user was not saved
 	if a.DB.NewRecord(u) != false {
-		respondWithError(w, http.StatusInternalServerError, err.Error())
+		respondWithError(w, http.StatusInternalServerError, []string{err.Error()})
 		return
 	}
 
@@ -84,14 +86,14 @@ func (a *app) updateUser(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&newUser)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error())
+		respondWithError(w, http.StatusBadRequest, []string{err.Error()})
 		return
 	}
 	defer r.Body.Close()
 
 	// first check if the user exists
 	if err := a.DB.Where("id = ?", newUser.ID).First(&oldUser).Error; err != nil {
-		respondWithError(w, http.StatusNotFound, "We can't find the user you are trying to update!")
+		respondWithError(w, http.StatusNotFound, []string{"We can't find the user you are trying to update!"})
 		return
 	}
 
@@ -108,7 +110,7 @@ func (a *app) updateUser(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := a.DB.Save(&oldUser).Error; err != nil {
-		respondWithError(w, http.StatusInternalServerError, "We couldn't update your store")
+		respondWithError(w, http.StatusInternalServerError, []string{"We couldn't update your store"})
 		return
 	}
 

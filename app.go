@@ -43,11 +43,11 @@ func (a *app) Run(addr string) {
 	log.Fatal(http.ListenAndServe(addr, a.Router))
 }
 
-func respondWithError(w http.ResponseWriter, code int, message string) {
+func respondWithError(w http.ResponseWriter, code int, err []string) {
 	response := ResponseBuilder{
 		Status:     "failure",
 		StatusCode: code,
-		Errors:     map[string]string{"error": message},
+		Errors:     err,
 	}
 	responseWrite(w, response)
 }

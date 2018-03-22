@@ -10,15 +10,15 @@ func (a *app) createRole(w http.ResponseWriter, r *http.Request) {
 	decoder := json.NewDecoder(r.Body)
 	err := decoder.Decode(&role)
 	if err != nil {
-		respondWithError(w, http.StatusBadRequest, err.Error())
+		respondWithError(w, http.StatusBadRequest, []string{err.Error()})
 		return
 	}
 	defer r.Body.Close()
 
 	// validations
+	var validationErrors []string
 	if stringIsEmpty(role.Name) {
-		respondWithError(w, http.StatusBadRequest, "Role name is required")
-		return
+		validationErrors = append(validationErrors, "Role name is required")
 	}
 
 	a.DB.NewRecord(role)
@@ -26,8 +26,7 @@ func (a *app) createRole(w http.ResponseWriter, r *http.Request) {
 	a.DB.Create(&role)
 
 	if a.DB.NewRecord(role) != false {
-		respondWithError(w, http.StatusInternalServerError, "We could not save your role. Please try again!")
-		return
+		validationErrors = append(validationErrors, "We could not save your role. Please try again!")
 	}
 
 	respondWithJSON(w, http.StatusCreated, role)
