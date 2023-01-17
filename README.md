@@ -30,7 +30,7 @@ go run $(ls -1 *.go | grep -v _test.go)
 
 ## Authors
 
-* **Christophe Mutabazi** - *Full stack engineer* - [Personalwebsite](http://orbit.surge.sh/)
+* **Christophe Mutabazi** - *Full stack engineer*
 
 ## License
 Copyright {2018}
